@@ -7,7 +7,7 @@ import os
 result_dir = "render_img"
 label_dir = "label_txt"
 
-dset = hp.File("SynthText.h5", "r")
+dset = hp.File("/content/XRETAIL_INFRASTRUCTURE/SynthText/results/SynthText.h5", "r")
 
 for k in dset['data'].keys():
     print(k)
@@ -18,7 +18,7 @@ for k in dset['data'].keys():
     pos = fileName.find(".jpg_0")
     fileName = fileName[0:pos]
 
-    labelFile = fileName + "_wordBB" + ".txt"
+    labelFile = fileName + ".txt"
     labelFile = os.path.join(label_dir, labelFile)
     label_file = open(labelFile, 'w')
     im_arr = dset['data'][k][:]
@@ -60,7 +60,8 @@ for k in dset['data'].keys():
 
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
-    imgFile = fileName + "_wordBB" + ".jpg"
+    imgFile = fileName  + ".jpg"
     imgFile = os.path.join(result_dir, imgFile)
     img.save(imgFile)
+
 

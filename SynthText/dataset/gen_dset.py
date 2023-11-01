@@ -6,22 +6,23 @@ from PIL import Image
 import h5py as hp
 
 
-IMG_DIR="bg_img"
-depth = hp.File("depth.h5","r")
-seg_mask = hp.File("seg.h5","r")
+IMG_DIR="/content/XRETAIL_INFRASTRUCTURE/SynthText/dataset/bg_img"
+depth = hp.File("/content/XRETAIL_INFRASTRUCTURE/SynthText/dataset/depth.h5","r")
+seg_mask = hp.File("/content/XRETAIL_INFRASTRUCTURE/SynthText/dataset/seg.h5","r")
 seg = seg_mask[u'mask']
 
 
-dset = hp.File("../data/dset.h5","w")
+dset = hp.File("/content/XRETAIL_INFRASTRUCTURE/SynthText/data/dset.h5","w")
 dImage = dset.create_group("image")
 dDepth = dset.create_group("depth")
 dSeg = dset.create_group("seg")
 
 if __name__ == "__main__":
     imgFiles = os.listdir(IMG_DIR)
+    print(len(imgFiles))
     i = 0
-    for j in range(2):
-        for file in imgFiles:
+    for j in [0,1]:
+        for file in imgFiles[0:5000]:
             imgFile = os.path.join(IMG_DIR, file)
             if os.path.isfile(imgFile):
                 if file in depth.keys() and file in seg.keys():
@@ -43,4 +44,3 @@ if __name__ == "__main__":
 depth.close()
 seg_mask.close()
 dset.close()
-
