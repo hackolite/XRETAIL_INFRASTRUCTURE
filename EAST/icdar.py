@@ -368,14 +368,14 @@ def sort_rectangle(poly):
     # First find the lowest point
     p_lowest = np.argmax(poly[:, 1])
     if np.count_nonzero(poly[:, 1] == poly[p_lowest, 1]) == 2:
-        # 底边平行于X轴, 那么p0为左上角 - if the bottom line is parallel to x-axis, then p0 must be the upper-left corner
+        #if the bottom line is parallel to x-axis, then p0 must be the upper-left corner
         p0_index = np.argmin(np.sum(poly, axis=1))
         p1_index = (p0_index + 1) % 4
         p2_index = (p0_index + 2) % 4
         p3_index = (p0_index + 3) % 4
         return poly[[p0_index, p1_index, p2_index, p3_index]], 0.
     else:
-        # 找到最低点右边的点 - find the point that sits right to the lowest point
+        #find the point that sits right to the lowest point
         p_lowest_right = (p_lowest - 1) % 4
         p_lowest_left = (p_lowest + 1) % 4
         angle = np.arctan(
@@ -384,14 +384,14 @@ def sort_rectangle(poly):
         if angle <= 0:
             print(angle, poly[p_lowest], poly[p_lowest_right])
         if angle / np.pi * 180 > 45:
-            # 这个点为p2 - this point is p2
+            # p2 - this point is p2
             p2_index = p_lowest
             p1_index = (p2_index - 1) % 4
             p0_index = (p2_index - 2) % 4
             p3_index = (p2_index + 1) % 4
             return poly[[p0_index, p1_index, p2_index, p3_index]], -(np.pi / 2 - angle)
         else:
-            # 这个点为p3 - this point is p3
+            # this point is p3
             p3_index = p_lowest
             p0_index = (p3_index + 1) % 4
             p1_index = (p3_index + 2) % 4
@@ -435,7 +435,7 @@ def restore_rectangle_rbox(origin, geometry):
                                   new_p2[:, np.newaxis, :], new_p3[:, np.newaxis, :]], axis=1)  # N*4*2
     else:
         new_p_0 = np.zeros((0, 4, 2))
-    # for angle < 0
+
     origin_1 = origin[angle < 0]
     d_1 = d[angle < 0]
     angle_1 = angle[angle < 0]
@@ -503,8 +503,8 @@ def generate_rbox(im_size, polys, tags):
             cv2.fillPoly(training_mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
 
         xy_in_poly = np.argwhere(poly_mask == (poly_idx + 1))
-        # if geometry == 'RBOX':
-        # 对任意两个顶点的组合生成一个平行四边形 - generate a parallelogram for any combination of two vertices
+
+        generate a parallelogram for any combination of two vertices
         fitted_parallelograms = []
         for i in range(4):
             p0 = poly[i]
@@ -515,13 +515,13 @@ def generate_rbox(im_size, polys, tags):
             backward_edge = fit_line([p0[0], p3[0]], [p0[1], p3[1]])
             forward_edge = fit_line([p1[0], p2[0]], [p1[1], p2[1]])
             if point_dist_to_line(p0, p1, p2) > point_dist_to_line(p0, p1, p3):
-                # 平行线经过p2 - parallel lines through p2
+                #parallel lines through p2
                 if edge[1] == 0:
                     edge_opposite = [1, 0, -p2[0]]
                 else:
                     edge_opposite = [edge[0], -1, p2[1] - edge[0] * p2[0]]
             else:
-                # 经过p3 - after p3
+                #after p3
                 if edge[1] == 0:
                     edge_opposite = [1, 0, -p3[0]]
                 else:
@@ -614,14 +614,12 @@ def generator(input_size=512, batch_size=32,
             try:
                 im_fn = image_list[i]
                 im = cv2.imread(im_fn)
-                # print im_fn
                 h, w, _ = im.shape
                 txt_fn1 = im_fn.replace(os.path.basename(im_fn).split('.')[1], 'txt')
-                txt_fn = txt_fn1.replace(os.path.basename(txt_fn1), "gt_" + os.path.basename(txt_fn1))
+                txt_fn = txt_fn1.replace(os.path.basename(txt_fn1),  os.path.basename(txt_fn1))
                 if not os.path.exists(txt_fn):
                     print('text file {} does not exists'.format(txt_fn))
                     continue
-                #print("txt_fn", txt_fn)
                 try:
                     text_polys, text_tags = load_annoataion(txt_fn)
                     # print("text_tags",text_tags)
@@ -632,9 +630,7 @@ def generator(input_size=512, batch_size=32,
                 except Exception as e:
                     print("text_polys", text_polys)
                     print("text_tags", text_tags)
-                # if text_polys.shape[0] == 0:
-                #     continue
-                # random scale this image
+
                 rd_scale = np.random.choice(random_scale)
                 im = cv2.resize(im, dsize=None, fx=rd_scale, fy=rd_scale)
                 text_polys *= rd_scale
@@ -682,19 +678,6 @@ def generator(input_size=512, batch_size=32,
 
                 if vis:
                     fig, axs = plt.subplots(3, 2, figsize=(20, 30))
-                    # axs[0].imshow(im[:, :, ::-1])
-                    # axs[0].set_xticks([])
-                    # axs[0].set_yticks([])
-                    # for poly in text_polys:
-                    #     poly_h = min(abs(poly[3, 1] - poly[0, 1]), abs(poly[2, 1] - poly[1, 1]))
-                    #     poly_w = min(abs(poly[1, 0] - poly[0, 0]), abs(poly[2, 0] - poly[3, 0]))
-                    #     axs[0].add_artist(Patches.Polygon(
-                    #         poly * 4, facecolor='none', edgecolor='green', linewidth=2, linestyle='-', fill=True))
-                    #     axs[0].text(poly[0, 0] * 4, poly[0, 1] * 4, '{:.0f}-{:.0f}'.format(poly_h * 4, poly_w * 4),
-                    #                    color='purple')
-                    # axs[1].imshow(score_map)
-                    # axs[1].set_xticks([])
-                    # axs[1].set_yticks([])
                     axs[0, 0].imshow(im[:, :, ::-1])
                     axs[0, 0].set_xticks([])
                     axs[0, 0].set_yticks([])
