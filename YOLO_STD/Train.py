@@ -21,34 +21,34 @@ def save_model(model):
     with open("text_detect_model.json", "w") as json_file:
         json_file.write(model_json)
 
-        
-        
-def load_model(strr):        
+
+
+def load_model(strr):
     json_file = open(strr, 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
     return loaded_model
-    
 
-    
-    
+
+
+
 def yolo_model(input_shape):
-    
+
     inp = Input(input_shape)
     model = MobileNetV2( input_tensor= inp , include_top=False, weights='imagenet')
     last_layer = model.output
 
-    conv = Conv2D(512,(3,3) , activation='relu' , padding='same')(last_layer)
+    conv = Conv2D(512,(3,3) , activation=tf.nn.leaky_relu, padding='same')(last_layer)
     conv = Dropout(0.4)(conv)
     bn = BatchNormalization()(conv)
     lr = LeakyReLU(alpha=0.1)(bn)
-    
-    conv = Conv2D(128,(3,3) , activation='relu' , padding='same')(lr)
+
+    conv = Conv2D(128,(3,3) , activation=tf.nn.leaky_relu , padding='same')(lr)
     conv = Dropout(0.4)(conv)
     bn = BatchNormalization()(conv)
     lr = LeakyReLU(alpha=0.1)(bn)
-    
+
     conv = Conv2D(5,(3,3) , activation=tf.nn.leaky_relu, padding='same')(lr)
     final = Reshape((grid_h,grid_w,classes,info))(conv)
     model = Model(inp,final)
@@ -75,7 +75,7 @@ def yolo_loss_func(y_true,y_pred):
     w_pred = y_pred[:,:,:,:,3]
     h_true = y_true[:,:,:,:,4]
     h_pred = y_pred[:,:,:,:,4]
-    
+
     p_loss_absent = K.sum(K.square(p_pred - p_true)*noobs)
     p_loss_present = K.sum(K.square(p_pred - p_true))
     x_loss = K.sum(K.square(x_pred - x_true)*coords)
@@ -84,9 +84,9 @@ def yolo_loss_func(y_true,y_pred):
     w_loss = K.sum(K.square(K.sqrt(w_pred) - K.sqrt(w_true))*coords)
     h_loss = K.sum(K.square(K.sqrt(h_pred) - K.sqrt(h_true))*coords)
     wh_loss = w_loss + h_loss
-    
+
     loss = p_loss_absent + p_loss_present + xy_loss + wh_loss
-    
+
 
 #Variable Definition
 img_w = 512
@@ -121,5 +121,3 @@ checkpoint = ModelCheckpoint('text_detect.h5', monitor='val_loss', verbose=1, sa
 model.load_weights('text_detect.h5')
 model.compile(loss=yolo_loss_func , optimizer=opt , metrics = ['accuracy'])
 hist = model.fit(X_train ,Y_train ,epochs= 30 ,batch_size = 4 , callbacks=[checkpoint] , validation_data=(X_val,Y_val))
-
-
