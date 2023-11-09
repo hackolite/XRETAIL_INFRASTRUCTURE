@@ -15,14 +15,39 @@ import matplotlib.pyplot as plt
 import os
 
 
+
+
+
+def yolo_model(input_shape):
+
+    inp = Input(input_shape)
+    model = MobileNetV2( input_tensor= inp , include_top=False, weights='imagenet')
+    last_layer = model.output
+
+    conv = Conv2D(512,(3,3) , activation=tf.nn.leaky_relu, padding='same')(last_layer)
+    conv = Dropout(0.4)(conv)
+    bn = BatchNormalization()(conv)
+    lr = LeakyReLU(alpha=0.1)(bn)
+
+    conv = Conv2D(128,(3,3) , activation=tf.nn.leaky_relu , padding='same')(lr)
+    conv = Dropout(0.4)(conv)
+    bn = BatchNormalization()(conv)
+    lr = LeakyReLU(alpha=0.1)(bn)
+
+    conv = Conv2D(5,(3,3) , activation=tf.nn.leaky_relu, padding='same')(lr)
+    final = Reshape((512,512,1,5))(conv)
+    model = Model(inp,final)
+    return model
+
+
 def save_model(model):
     model_json = model.to_json()
     with open("text_detect_model.json", "w") as json_file:
         json_file.write(model_json)
 
-        
-        
-def load_model(strr):        
+
+
+def load_model(strr):
     json_file = open(strr, 'r')
     loaded_model_json = json_file.read()
     json_file.close()
@@ -50,6 +75,3 @@ model_exp.load_weights('text_detect.h5')
 rand = np.random.randint(0,X.shape[0], size = 5)
 for i in rand:
     predict_func(model_exp, X[i:i+1] , 0.1, i)
-
-
-

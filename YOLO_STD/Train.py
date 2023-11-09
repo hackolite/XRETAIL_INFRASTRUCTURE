@@ -86,6 +86,9 @@ def yolo_loss_func(y_true,y_pred):
     wh_loss = w_loss + h_loss
 
     loss = p_loss_absent + p_loss_present + xy_loss + wh_loss
+    return loss
+
+
 
 
 #Variable Definition
